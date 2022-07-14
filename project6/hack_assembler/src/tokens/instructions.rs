@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 
 use crate::symbol_table::SymbolTable;
-
 use super::token::{parse_symbol, Symbol};
 
 const JUMP_VALUES: &'static [&'static str] = &["", "JGT", "JEQ", "JGE", "JLT", "JNE", "JLE", "JMP"];
@@ -35,17 +34,18 @@ lazy_static! {
     };
 }
 
+// Code Trait
 pub trait Code {
     fn encode(&self, symbol_table: &SymbolTable) -> Option<String>;
 }
 
-// ENUMS
-
+// Auxiliary
 pub enum Value {
     Variable(Symbol),
     Constant(u16),
 }
 
+// Instruction
 pub enum Instruction {
     A(AInstruction),
     C(CInstruction),
@@ -60,19 +60,10 @@ impl Code for Instruction {
     }
 }
 
-// STRUCTS
-
+// A Instruction
 pub struct AInstruction {
     pub value: Value,
 }
-
-pub struct CInstruction {
-    pub comp: u16,
-    pub dest: u16,
-    pub jump: u16,
-}
-
-// CONSTRUCTORS
 
 impl AInstruction {
     pub fn new(value: Value) -> Self {
@@ -90,6 +81,28 @@ impl AInstruction {
             })
             .map(|value| AInstruction::new(value))
     }
+}
+
+impl Code for AInstruction {
+    fn encode(&self, symbol_table: &SymbolTable) -> Option<String> {
+        match &self.value {
+            Value::Variable(variable) => {
+                symbol_table.get_address(variable.to_string()).map(|address| {
+                    format!("{:016b}", address)
+                })
+            },
+            Value::Constant(constant) => {
+                Some(format!("{:016b}", constant))
+            }
+        }
+    }
+}
+
+// C Instruction
+pub struct CInstruction {
+    pub comp: u16,
+    pub dest: u16,
+    pub jump: u16,
 }
 
 impl CInstruction {
@@ -132,23 +145,6 @@ impl CInstruction {
 
         let code = code.replace('M', "A");
         COMP_VALUES.get(&(code.as_ref())).map(|&v| a | (v << 6))
-    }
-}
-
-// CODE
-
-impl Code for AInstruction {
-    fn encode(&self, symbol_table: &SymbolTable) -> Option<String> {
-        match &self.value {
-            Value::Variable(variable) => {
-                symbol_table.get_address(variable.to_string()).map(|address| {
-                    format!("{:016b}", address)
-                })
-            },
-            Value::Constant(constant) => {
-                Some(format!("{:016b}", constant))
-            }
-        }
     }
 }
 

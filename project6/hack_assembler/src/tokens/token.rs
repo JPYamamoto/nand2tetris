@@ -1,5 +1,3 @@
-// use std::fmt;
-
 use super::label::Label;
 use super::instructions::Instruction;
 
@@ -9,15 +7,6 @@ pub enum Token {
     Label(Label),
     Instruction(Instruction),
 }
-
-// impl fmt::Display for Token {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         match self {
-//             Token::Label(label) => write!(f, "{}", label),
-//             Token::Instruction(instruction) => write!(f, "{}", instruction),
-//         }
-//     }
-// }
 
 pub fn parse_symbol(symbol: &str) -> Option<Symbol> {
     let valid_chars = symbol.chars().all(|c| {
